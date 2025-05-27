@@ -1,0 +1,1 @@
+LENGTH_STR = 25
