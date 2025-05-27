@@ -1,32 +1,36 @@
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model  # заменить на кастомный
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
 
-User = get_user_model()  # заменить на кастомный (по готовности у Игоря)
+UserProfile = get_user_model()  # заменить на кастомный
 
 
-class Group(models.Model):  # заменить по готовности
-    """Модель группы."""
+class Title(models.Model):  # заменить по готовности
+    """Модель публикации."""
 
 
 class Review(models.Model):
     text = models.TextField(verbose_name='Текст')
+    score = models.IntegerField(
+        verbose_name="Оценка",
+        help_text="Оценка в диапазоне от 1 до 10.",
+        validators=[MinValueValidator(1), MaxValueValidator(10)],
+    )
     pub_date = models.DateTimeField(
         verbose_name='Дата публикации',
         auto_now_add=True,
     )
     author = models.ForeignKey(
-        User,
+        UserProfile,
         on_delete=models.CASCADE,
         related_name='reviews',
         verbose_name='Автор отзыва',
     )
-    group = models.ForeignKey(
-        Group,
-        on_delete=models.SET_NULL,
+    title = models.ForeignKey(
+        Title,
+        on_delete=models.CASCADE,
         related_name='reviews',
-        blank=True,
-        null=True,
-        verbose_name='Группа',
+        verbose_name='Произведение',
     )
 
     class Meta:
@@ -40,7 +44,7 @@ class Review(models.Model):
 class Comment(models.Model):
     text = models.TextField(verbose_name='Текст')
     author = models.ForeignKey(
-        User,
+        UserProfile,
         on_delete=models.CASCADE,
         related_name='comments',
         verbose_name='Автор комментария',
