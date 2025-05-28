@@ -7,7 +7,7 @@ class Review(models.Model):
 
 
 class Genre(models.Model):
-    name = models.CharFieldField('название', max_length=256)
+    name = models.CharField('название', max_length=256)
     slug = models.SlugField(
         'слаг жанра',
         max_length=50,
@@ -18,7 +18,7 @@ class Genre(models.Model):
 
 
 class Category(models.Model):
-    name = models.CharFieldField('название', max_length=256)
+    name = models.CharField('название', max_length=256)
     slug = models.SlugField(
         'слаг категории',
         max_length=50,
@@ -29,11 +29,14 @@ class Category(models.Model):
 
 
 class Title(models.Model):
-    name = models.CharFieldField('название', max_length=256)
+    name = models.CharField('название', max_length=256)
     year = models.IntegerField('год выпуска',)
-    rating = models.ForeignKey(
-        Review,)
-    descriptinon = models.TextField('описание',)
+    # rating = models.ForeignKey(
+    #     Review,
+    #     on_delete=models.SET_NULL,
+    #     null=True
+    # )
+    description = models.TextField('описание',)
     genre = models.ForeignKey(
         Genre,
         on_delete=models.SET_NULL,
