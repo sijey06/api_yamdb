@@ -1,81 +1,111 @@
-from rest_framework.viewsets import ModelViewSet
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.decorators import api_view
+from rest_framework import permissions, status
 from rest_framework.response import Response
-from rest_framework import status
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework.decorators import api_view, permission_classes
 from django.core.mail import send_mail
 from django.conf import settings
-
 from .models import UserProfile
-from .permissions import IsAdminOrReadOnly, IsOwnerOrAdmin
+from .serializers import UserProfileSerializer, UserProfileCreateSerializer, UserProfileEditSerializer, TokenSerializer
+from api_yamdb.settings import DEFAULT_FROM_EMAIL
+from .models import UserProfile
 from .serializers import UserProfileSerializer
+from rest_framework.filters import SearchFilter
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.viewsets import ModelViewSet
+from rest_framework.decorators import action
+from django.shortcuts import get_object_or_404
+from .permissions import IsAdmin
 
 
 @api_view(['POST'])
+@permission_classes([permissions.AllowAny])
 def signup(request):
-    email = request.data.get('email')
-    username = request.data.get('username')
+    """Регистрация пользователя."""
+    serializer = UserProfileCreateSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
 
-    if not email or not username:
-        return Response(
-            {'error': 'Email и username обязательны'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
+    username = serializer.validated_data['username']
+    email = serializer.validated_data['email']
+
+    try:
+        UserProfile.objects.get(email=email, username=username)
+        return Response({'detail': 'Учетная запись уже существует'}, status=status.HTTP_200_OK)
+    except UserProfile.DoesNotExist:
+        pass
+
+    if UserProfile.objects.filter(email=email).exists():
+        return Response({'email': ['Email уже используется']}, status=status.HTTP_400_BAD_REQUEST)
+
+    if UserProfile.objects.filter(username=username).exists():
+        return Response({'username': ['Имя пользователя уже занято']}, status=status.HTTP_400_BAD_REQUEST)
 
     user = UserProfile.objects.create_user(username=username, email=email)
     user.set_confirmation_code()
 
-    subject = 'Подтверждение регистрации на сайте YAMDB'
-    message = f'''Ваш код подтверждения: {user.confirmation_code}'''
     send_mail(
-        subject,
-        message,
-        settings.DEFAULT_FROM_EMAIL,
+        'Код подтверждения YaMDb',
+        f'Код подтверждения: {user.confirmation_code}',
+        DEFAULT_FROM_EMAIL,
         [email],
-        fail_silently=False
+        fail_silently=False,
     )
 
-    return Response(
-        {'confirmation_code': user.confirmation_code},
-        status=status.HTTP_201_CREATED
-    )
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
-def confirm_and_get_token(request):
-    username = request.data.get('username')
-    confirmation_code = request.data.get('confirmation_code')
+@permission_classes([permissions.AllowAny])
+def get_token(request):
+    """Получение токена после подтверждения кода."""
+    serializer = TokenSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
 
-    try:
-        user = UserProfile.objects.get(username=username)
-    except UserProfile.DoesNotExist:
-        return Response(
-            {'error': 'Пользователь не найден'},
-            status=status.HTTP_404_NOT_FOUND
-        )
+    user = get_object_or_404(UserProfile, username=serializer.validated_data['username'])
 
-    if user.confirmation_code != confirmation_code:
+    conf_code = serializer.validated_data['confirmation_code']
+    if user.confirmation_code != conf_code:
         return Response(
-            {'error': 'Неверный confirmation code'},
+            {'confirmation_code': ['Неверный код']},
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    refresh = RefreshToken.for_user(user)
-    return Response({
-        'access': str(refresh.access_token),
-        'refresh': str(refresh)
-    }, status=status.HTTP_200_OK)
+    token = AccessToken.for_user(user)
+    return Response({'token': str(token)}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET', 'PATCH'])
+@permission_classes([IsAuthenticated])
+def current_user(request):
+    """Просмотр и редактирование информации о текущем пользователе."""
+    if request.method == 'GET':
+        serializer = UserProfileSerializer(request.user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    elif request.method == 'PATCH':
+        serializer = UserProfileEditSerializer(request.user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class UserProfileViewSet(ModelViewSet):
+    """Работа с моделью UserProfile."""
     queryset = UserProfile.objects.all()
     serializer_class = UserProfileSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = (IsAdmin,)
+    filter_backends = (SearchFilter,)
+    search_fields = ('username',)
+    lookup_field = 'username'
+    http_method_names = ['get', 'post', 'patch', 'delete']
 
-    def get_permissions(self):
-        if self.action in ['list', 'create', 'destroy']:
-            return [IsAdminOrReadOnly()]
-        elif self.action in ['retrieve', 'update', 'partial_update']:
-            return [IsAuthenticated(), IsOwnerOrAdmin()]
-        return [IsAuthenticated()]
+    @action(detail=False, methods=['get', 'patch'], permission_classes=[IsAuthenticated])
+    def me(self, request):
+        """Информация о текущем залогиненном пользователе."""
+        if request.method == 'PATCH':
+            serializer = UserProfileEditSerializer(request.user, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            serializer = UserProfileSerializer(request.user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
