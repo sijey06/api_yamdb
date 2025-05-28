@@ -1,8 +1,8 @@
-from django.contrib.auth import get_user_model  # заменить на кастомный
+from django.contrib.auth import get_user_model
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 
-UserProfile = get_user_model()  # заменить на кастомный
+User = get_user_model()  # заменить на пользователя из users
 
 
 class Title(models.Model):  # заменить по готовности
@@ -13,15 +13,18 @@ class Review(models.Model):
     text = models.TextField(verbose_name='Текст')
     score = models.IntegerField(
         verbose_name="Оценка",
-        help_text="Оценка в диапазоне от 1 до 10.",
-        validators=[MinValueValidator(1), MaxValueValidator(10)],
+        help_text="Оценка в диапазоне от 1 до 10.",  # подтянуть значения из констант
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(10),
+        ],  # вынести в константы
     )
     pub_date = models.DateTimeField(
         verbose_name='Дата публикации',
         auto_now_add=True,
     )
     author = models.ForeignKey(
-        UserProfile,
+        User,
         on_delete=models.CASCADE,
         related_name='reviews',
         verbose_name='Автор отзыва',
@@ -44,7 +47,7 @@ class Review(models.Model):
 class Comment(models.Model):
     text = models.TextField(verbose_name='Текст')
     author = models.ForeignKey(
-        UserProfile,
+        User,
         on_delete=models.CASCADE,
         related_name='comments',
         verbose_name='Автор комментария',
@@ -58,9 +61,11 @@ class Comment(models.Model):
     created = models.DateTimeField(
         verbose_name='Дата добавления',
         auto_now_add=True,
-        db_index=True,
     )
 
     class Meta:
         verbose_name = 'комментарий'
         verbose_name_plural = 'Комментарии'
+
+    def __str__(self):
+        return self.text

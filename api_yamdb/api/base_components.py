@@ -4,20 +4,21 @@ from rest_framework.relations import SlugRelatedField
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.viewsets import ModelViewSet
 
-from .permissions import OwnerOrReadOnly
+from .permissions import IsAdminModeratorAuthorOrReadOnly
 
 
 class BaseViewSet(ModelViewSet):
     """Базовый вьюсет для наследования."""
 
-    permission_classes = (OwnerOrReadOnly,)  # заменить кастомным классом по ТЗ
+    permission_classes = (IsAdminModeratorAuthorOrReadOnly,)
+    http_method_names = ['get', 'post', 'head', 'options', 'patch', 'delete']
 
-    def check_ownership(self, instance):
-        """Общая проверка владения объектом."""
-        if instance.author != self.request.user:
-            raise PermissionDenied(
-                'Вы можете изменять только собственные записи.'
-            )
+    # def check_ownership(self, instance):
+    #     """Общая проверка владения объектом."""
+    #     if instance.author != self.request.user:
+    #         raise PermissionDenied(
+    #             'Вы можете изменять только собственные записи.'
+    #         )
 
 
 class BaseSerializer(serializers.ModelSerializer):

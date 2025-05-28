@@ -13,6 +13,7 @@ router_v1.register(
     basename='comment',
 )
 
+
 extra_patterns = [
     path('', include(router_v1.urls)),
 ]
