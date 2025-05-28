@@ -1,9 +1,6 @@
 from django.shortcuts import get_object_or_404
-from rest_framework.exceptions import PermissionDenied
+
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.viewsets import (
-    ModelViewSet,
-)
 
 from reviews.models import Comment, Review
 from .serializers import (
@@ -11,16 +8,7 @@ from .serializers import (
     ReviewSerializer,
 )
 
-
-class BaseViewSet(ModelViewSet):
-    """Базовый вьюсет для наследования."""
-
-    def check_ownership(self, instance):
-        """Общая проверка владения объектом."""
-        if instance.author != self.request.user:
-            raise PermissionDenied(
-                'Вы можете изменять только собственные записи.'
-            )
+from .base_components import BaseViewSet
 
 
 class ReviewViewSet(BaseViewSet):
@@ -33,17 +21,6 @@ class ReviewViewSet(BaseViewSet):
     def perform_create(self, serializer):
         """Сохраняет новый отзыв с авторством текущего пользователя."""
         serializer.save(author=self.request.user)
-
-    def perform_update(self, serializer):
-        """Обновляет существующий отзыв с проверкой владельца."""
-        instance = self.get_object()
-        self.check_ownership(instance)
-        super().perform_update(serializer)
-
-    def perform_destroy(self, instance):
-        """Удаляет существующий отзыв с проверкой владельца."""
-        self.check_ownership(instance)
-        super().perform_destroy(instance)
 
 
 class CommentViewSet(BaseViewSet):
@@ -66,14 +43,3 @@ class CommentViewSet(BaseViewSet):
     def perform_create(self, serializer):
         """Сохраняет комментарий с авторством текущего пользователя."""
         serializer.save(author=self.request.user, review=self._get_review())
-
-    def perform_update(self, serializer):
-        """Обновляет существующий комментарий с проверкой владельца."""
-        instance = self.get_object()
-        self.check_ownership(instance)
-        super().perform_update(serializer)
-
-    def perform_destroy(self, instance):
-        """Удаляет существующий комментарий с проверкой владельца."""
-        self.check_ownership(instance)
-        super().perform_destroy(instance)

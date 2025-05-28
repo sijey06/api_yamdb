@@ -1,31 +1,16 @@
-from rest_framework import serializers
-from rest_framework.relations import SlugRelatedField
-
-from reviews.models import Comment, Review, UserProfile
+from reviews.models import Comment, Review
+from .base_components import BaseSerializer
 
 
-class BaseAuthorSerializer(serializers.ModelSerializer):
-    """Базовый сериализатор с полем author."""
-
-    author = SlugRelatedField(
-        read_only=True,
-        slug_field='username',
-    )
-
-    class Meta:
-        fields = '__all__'
-
-
-class ReviewSerializer(BaseAuthorSerializer):
+class ReviewSerializer(BaseSerializer):
     """Сериализатор для работы с отзывами."""
 
-    class Meta(BaseAuthorSerializer.Meta):
+    class Meta(BaseSerializer.Meta):
         model = Review
 
 
-class CommentSerializer(BaseAuthorSerializer):
+class CommentSerializer(BaseSerializer):
     """Сериализатор для работы с комментариями."""
 
-    class Meta(BaseAuthorSerializer.Meta):
+    class Meta(BaseSerializer.Meta):
         model = Comment
-        read_only_fields = ('review',)
