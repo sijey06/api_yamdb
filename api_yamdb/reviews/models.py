@@ -1,8 +1,8 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 
-from users.models import U
 from .constants import LENGTH_STR
+from users.models import UserProfile
 
 
 class Genre(models.Model):
@@ -39,8 +39,8 @@ class Title(models.Model):
     genre = models.ForeignKey(
         Genre,
         on_delete=models.SET_NULL,
-        blank=True,  # поле может быть пустым в форме
-        null=True,  # в базе данных может быть сохранено значение null
+        blank=True,
+        null=True,
         verbose_name='жанр произведения',
     )
 
@@ -66,7 +66,7 @@ class Review(models.Model):
     text = models.TextField(verbose_name='Текст')
     score = models.IntegerField(
         verbose_name="Оценка",
-        help_text="Оценка в диапазоне от 1 до 10.",  # подтянуть значения из констант
+        help_text="Оценка в диапазоне от 1 до 10.",
         validators=[
             MinValueValidator(1),
             MaxValueValidator(10),
