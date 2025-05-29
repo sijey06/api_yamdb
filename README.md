@@ -60,15 +60,15 @@ YamDB отправит код подтверждения на указанный
 Модератор — те же права, что и у пользователя, плюс право удалять и редактировать любые отзывы и комментарии
 Администратор — полные права на управление контентом проекта
 ### Основные эндпоинты API
-/api/v1/auth/signup/ (POST): Регистрация пользователя
-/api/v1/auth/token/ (POST): Получение JWT-токена
-/api/v1/users/ (GET, POST): Пользователи
-/api/v1/users/me/ (GET, PATCH): Профиль пользователя
-/api/v1/categories/ (GET, POST): Категории произведений
-/api/v1/genres/ (GET, POST): Жанры произведений
-/api/v1/titles/ (GET, POST): Произведения
-/api/v1/titles/{title_id}/reviews/ (GET, POST): Отзывы
-/api/v1/titles/{title_id}/reviews/{review_id}/comments/ (GET, POST): Комментарии
+- `/api/v1/auth/signup/` (POST): Регистрация пользователя
+- `/api/v1/auth/token/` (POST): Получение JWT-токена
+- `/api/v1/users/` (GET, POST): Пользователи
+- `/api/v1/users/me/` (GET, PATCH): Профиль пользователя
+- `/api/v1/categories/` (GET, POST): Категории произведений
+- `/api/v1/genres/` (GET, POST): Жанры произведений
+- `/api/v1/titles/` (GET, POST): Произведения
+- `/api/v1/titles/{title_id}/reviews/` (GET, POST): Отзывы
+- `/api/v1/titles/{title_id}/reviews/{review_id}/comments/` (GET, POST): Комментарии
 ### Примеры запросов
 ### Регистрация нового пользователя
 ```
