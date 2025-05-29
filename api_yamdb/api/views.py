@@ -2,30 +2,43 @@ from rest_framework import filters, viewsets
 from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework import permissions
 
 from .permissions import IsAdminOrReadOnly
 from .serializers import (
     CategorySerializer,
-    TitleSerializer,
+    # TitleSerializer,
+    TitleReadSerializer,
+    TitleWriteSerializer,
     GenreSerializer,
     CommentSerializer,
     ReviewSerializer
 )
+from .filters import TitleFilter
 from reviews.models import Category, Title, Genre, Comment, Review
 from .base_components import BaseViewSet
 
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
-    serializer_class = TitleSerializer
+    # serializer_class = TitleSerializer
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = (
-        'category',
-        'genre',
-        'name',
-        'year',
-    )
+    # filterset_fields = (
+    #     'category',
+    #     'genre__slug',
+    #     'name',
+    #     'year',
+    # )
+    # чтобы корректно фильтровать 'genre__slug' используем кастомный FilterSet
+    filterset_class = TitleFilter
+    # тут исключаем метод PUT
+    http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
+
+    def get_serializer_class(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return TitleReadSerializer
+        return TitleWriteSerializer
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
