@@ -13,13 +13,6 @@ class BaseViewSet(ModelViewSet):
     permission_classes = (IsAdminModeratorAuthorOrReadOnly,)
     http_method_names = ['get', 'post', 'head', 'options', 'patch', 'delete']
 
-    # def check_ownership(self, instance):
-    #     """Общая проверка владения объектом."""
-    #     if instance.author != self.request.user:
-    #         raise PermissionDenied(
-    #             'Вы можете изменять только собственные записи.'
-    #         )
-
 
 class BaseSerializer(serializers.ModelSerializer):
     """Базовый сериализатор с полем author."""
