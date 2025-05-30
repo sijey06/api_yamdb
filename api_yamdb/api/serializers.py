@@ -1,40 +1,41 @@
-from django.db.models import Avg
-from rest_framework import serializers
 from datetime import datetime
 
-from reviews.models import Category, Title, Genre, Comment, Review
-from .base_components import BaseSerializer
+from django.db.models import Avg
+from rest_framework import serializers
+
+from api.base_components import (BaseNameSlugSerializer, BaseSerializer,
+                                 BaseTitleSerializer)
+from reviews.models import Category, Comment, Genre, Review
 
 
-class GenreSerializer(serializers.ModelSerializer):
+class GenreSerializer(BaseNameSlugSerializer):
+    """Сериализатор для работы с жанрами произведений."""
 
-    class Meta:
-        fields = ['name', 'slug']
+    class Meta(BaseNameSlugSerializer.Meta):
         model = Genre
 
 
 class CategorySerializer(serializers.ModelSerializer):
+    """Сериализатор для работы с категориями произведений."""
 
-    class Meta:
-        fields = ['name', 'slug']
+    class Meta(BaseNameSlugSerializer.Meta):
         model = Category
 
 
-class TitleReadSerializer(serializers.ModelSerializer):
+class TitleReadSerializer(BaseTitleSerializer):
+    """Сериализатор для чтения произведений."""
     rating = serializers.SerializerMethodField()
     genre = GenreSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
 
-    class Meta:
-        model = Title
-        fields = '__all__'
-
     def get_rating(self, obj):
+        """ Возвращает рейтинг произведений."""
         rating_from_reviews = obj.reviews.aggregate(Avg('score'))
         return rating_from_reviews['score__avg']
 
 
-class TitleWriteSerializer(serializers.ModelSerializer):
+class TitleWriteSerializer(BaseTitleSerializer):
+    """Сериализатор для записи (создания и обновления) произведений."""
     genre = serializers.SlugRelatedField(
         queryset=Genre.objects.all(),
         many=True,
@@ -45,11 +46,8 @@ class TitleWriteSerializer(serializers.ModelSerializer):
         slug_field='slug'
     )
 
-    class Meta:
-        model = Title
-        fields = '__all__'
-
     def validate_year(self, value):
+        """ Проверяет, чтобы значение года не указывалось в будущем."""
         if value > datetime.now().year:
             raise serializers.ValidationError(
                 'Нельзя добавлять произведения из будущего.'
