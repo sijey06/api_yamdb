@@ -1,15 +1,16 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from reviews.constants import LENGTH_STR, MAX_SCORE, MIN_SCORE
+from reviews.constants import (LENGTH_STR, LENGTH_NAME,
+                               LENGTH_SLUG, MAX_SCORE, MIN_SCORE)
 from users.models import UserProfile
 
 
 class Genre(models.Model):
-    name = models.CharField('название', max_length=256)
+    name = models.CharField('название', max_length=LENGTH_NAME)
     slug = models.SlugField(
         'слаг жанра',
-        max_length=50,
+        max_length=LENGTH_SLUG,
         unique=True)
 
     def __str__(self):
@@ -17,7 +18,7 @@ class Genre(models.Model):
 
 
 class Category(models.Model):
-    name = models.CharField('название', max_length=256)
+    name = models.CharField('название', max_length=LENGTH_NAME)
     slug = models.SlugField(
         'слаг категории',
         max_length=50,
@@ -28,7 +29,7 @@ class Category(models.Model):
 
 
 class Title(models.Model):
-    name = models.CharField('название', max_length=256)
+    name = models.CharField('название', max_length=LENGTH_NAME)
     year = models.IntegerField('год выпуска',)
     description = models.TextField('описание',)
     genre = models.ManyToManyField(

@@ -2,7 +2,6 @@ from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, permissions, serializers, viewsets
-from rest_framework.pagination import LimitOffsetPagination
 
 from api.base_components import BaseViewSet
 from api.filters import TitleFilter
@@ -11,7 +10,6 @@ from api.serializers import (CategorySerializer, CommentSerializer,
                              GenreSerializer, ReviewSerializer,
                              TitleReadSerializer, TitleWriteSerializer)
 from reviews.models import Category, Comment, Genre, Review, Title
-
 from .base_components import BaseViewSet
 from .filters import TitleFilter
 from .permissions import IsAdminOrReadOnly
@@ -22,6 +20,7 @@ from .serializers import (CategorySerializer, CommentSerializer,
 
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для работы с произведениями."""
+
     queryset = Title.objects.all()
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
@@ -40,6 +39,7 @@ class CategoryViewSet(mixins.ListModelMixin,
                       mixins.DestroyModelMixin,
                       viewsets.GenericViewSet):
     """Вьюсет для работы с категориями произведений."""
+
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = (IsAdminOrReadOnly,)
@@ -53,6 +53,7 @@ class GenreViewSet(mixins.ListModelMixin,
                    mixins.DestroyModelMixin,
                    viewsets.GenericViewSet):
     """Вьюсет для работы с жанрами произведений."""
+
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = (IsAdminOrReadOnly,)
@@ -106,4 +107,3 @@ class CommentViewSet(BaseViewSet):
     def perform_create(self, serializer):
         """Сохраняет комментарий с авторством текущего пользователя."""
         serializer.save(author=self.request.user, review=self._get_review())
-

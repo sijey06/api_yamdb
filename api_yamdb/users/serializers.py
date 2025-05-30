@@ -5,6 +5,7 @@ from rest_framework import serializers
 
 from .mixins import BaseAllFieldsSerializer
 from .models import UserProfile
+from reviews.constants import LENGTH_EMAIL, LENGTH_USERNAME
 
 
 class UserProfileCreateSerializer(serializers.ModelSerializer):
@@ -24,14 +25,14 @@ class UserProfileCreateSerializer(serializers.ModelSerializer):
             raise ValidationError(
                 'Username может содержать только буквы, цифры и @/./+/-/_'
             )
-        if len(value) > 150:
+        if len(value) > LENGTH_USERNAME:
             raise ValidationError(
                 'Username не может быть длиннее 150 символов'
             )
         return value
 
     def validate_email(self, value):
-        if len(value) > 254:
+        if len(value) > LENGTH_EMAIL:
             raise ValidationError(
                 'Email не может быть длиннее 254 символов'
             )

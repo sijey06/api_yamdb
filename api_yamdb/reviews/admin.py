@@ -9,10 +9,9 @@ class TitleAdmin(admin.ModelAdmin):
         'name',
         'year',
         'description',
-        'genre'
-        'category')
+        'category',)
     search_fields = ('name',)
-    list_filter = ('year', 'genre', 'category')
+    list_filter = ('year', 'genre', 'category',)
 
 
 @admin.register(Category)

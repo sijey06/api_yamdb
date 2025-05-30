@@ -24,6 +24,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class TitleReadSerializer(BaseTitleSerializer):
     """Сериализатор для чтения произведений."""
+
     rating = serializers.SerializerMethodField()
     genre = GenreSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
@@ -36,6 +37,7 @@ class TitleReadSerializer(BaseTitleSerializer):
 
 class TitleWriteSerializer(BaseTitleSerializer):
     """Сериализатор для записи (создания и обновления) произведений."""
+
     genre = serializers.SlugRelatedField(
         queryset=Genre.objects.all(),
         many=True,

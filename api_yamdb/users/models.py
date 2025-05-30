@@ -3,9 +3,12 @@ import secrets
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+from reviews.constants import LENGTH_CODE, LENGTH_EMAIL, LENGTH_ROLE
+
 
 class UserProfile(AbstractUser):
     """Пользовательская модель, расширенная дополнительными полями и ролями."""
+
     ADMIN = 'admin'
     MODERATOR = 'moderator'
     USER = 'user'
@@ -17,7 +20,7 @@ class UserProfile(AbstractUser):
     ]
 
     email = models.EmailField(
-        max_length=254,
+        max_length=LENGTH_EMAIL,
         unique=True,
         verbose_name='Адрес электронной почты',
     )
@@ -26,13 +29,13 @@ class UserProfile(AbstractUser):
         verbose_name='Биография',
     )
     role = models.CharField(
-        max_length=20,
+        max_length=LENGTH_ROLE,
         choices=ROLE_CHOICES,
         default=USER,
         verbose_name='Роль пользователя',
     )
     confirmation_code = models.CharField(
-        max_length=255,
+        max_length=LENGTH_CODE,
         blank=True,
         null=True,
         verbose_name='Код подтверждения',
