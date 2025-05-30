@@ -1,8 +1,7 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-
-from reviews.constants import LENGTH_STR, MIN_SCORE, MAX_SCORE
+from reviews.constants import LENGTH_STR, MAX_SCORE, MIN_SCORE
 from users.models import UserProfile
 
 

@@ -1,23 +1,7 @@
+from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from django.shortcuts import get_object_or_404
-from rest_framework import permissions
-
-from .permissions import IsAdminOrReadOnly
-from .serializers import (
-    CategorySerializer,
-    TitleReadSerializer,
-    TitleWriteSerializer,
-    GenreSerializer,
-    CommentSerializer,
-    ReviewSerializer,
-)
-from .filters import TitleFilter
-from reviews.models import Category, Title, Genre, Comment, Review
-from .base_components import BaseViewSet
-from django.db import IntegrityError
-from rest_framework import serializers
-from rest_framework import filters, mixins, permissions, viewsets
+from rest_framework import filters, mixins, permissions, serializers, viewsets
 from rest_framework.pagination import LimitOffsetPagination
 
 from api.base_components import BaseViewSet
@@ -27,6 +11,13 @@ from api.serializers import (CategorySerializer, CommentSerializer,
                              GenreSerializer, ReviewSerializer,
                              TitleReadSerializer, TitleWriteSerializer)
 from reviews.models import Category, Comment, Genre, Review, Title
+
+from .base_components import BaseViewSet
+from .filters import TitleFilter
+from .permissions import IsAdminOrReadOnly
+from .serializers import (CategorySerializer, CommentSerializer,
+                          GenreSerializer, ReviewSerializer,
+                          TitleReadSerializer, TitleWriteSerializer)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
