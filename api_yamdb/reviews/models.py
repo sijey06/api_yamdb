@@ -1,7 +1,7 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 
-from .constants import LENGTH_STR
+from .constants import LENGTH_STR, MIN_SCORE, MAX_SCORE
 from users.models import UserProfile
 
 
@@ -30,20 +30,11 @@ class Category(models.Model):
 class Title(models.Model):
     name = models.CharField('название', max_length=256)
     year = models.IntegerField('год выпуска',)
-    # rating = models.ForeignKey(
-    #     Review,
-    #     on_delete=models.SET_NULL,
-    #     null=True
-    # )
     description = models.TextField('описание',)
-    genre = models.ForeignKey(
+    genre = models.ManyToManyField(
         Genre,
-        on_delete=models.SET_NULL,
-        blank=True,
-        null=True,
-        verbose_name='жанр произведения',
+        verbose_name='жанр произведения'
     )
-
     category = models.ForeignKey(
         Category,
         on_delete=models.SET_NULL,
@@ -65,12 +56,12 @@ class Title(models.Model):
 class Review(models.Model):
     text = models.TextField(verbose_name='Текст')
     score = models.IntegerField(
-        verbose_name="Оценка",
-        help_text="Оценка в диапазоне от 1 до 10.",
+        verbose_name='Оценка',
+        help_text=f'Оценка в диапазоне от {MIN_SCORE} до {MAX_SCORE}.',
         validators=[
-            MinValueValidator(1),
-            MaxValueValidator(10),
-        ],  # вынести в константы
+            MinValueValidator(MIN_SCORE),
+            MaxValueValidator(MAX_SCORE),
+        ],
     )
     pub_date = models.DateTimeField(
         verbose_name='Дата публикации',
@@ -92,6 +83,12 @@ class Review(models.Model):
     class Meta:
         verbose_name = 'отзыв'
         verbose_name_plural = 'Отзывы'
+        constraints = (
+            models.UniqueConstraint(
+                fields=('author', 'title'),
+                name='unique_reviews',
+            ),
+        )
 
     def __str__(self):
         return self.text
@@ -111,7 +108,7 @@ class Comment(models.Model):
         related_name='comments',
         verbose_name='Отзыв',
     )
-    created = models.DateTimeField(
+    pub_date = models.DateTimeField(
         verbose_name='Дата добавления',
         auto_now_add=True,
     )

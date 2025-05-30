@@ -6,7 +6,7 @@ from .views import (
     TitleViewSet,
     GenreViewSet,
     ReviewViewSet,
-    CommentViewSet
+    CommentViewSet,
 )
 
 router_v1 = routers.DefaultRouter()

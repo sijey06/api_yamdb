@@ -1,36 +1,60 @@
 from django.db.models import Avg
 from rest_framework import serializers
+from datetime import datetime
 
 from reviews.models import Category, Title, Genre, Comment, Review
 from .base_components import BaseSerializer
 
 
-class TitleSerializer(serializers.ModelSerializer):
-    rating = serializers.SerializerMethodField()
+class GenreSerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = '__all__'
-        model = Title
-
-    def get_rating(self, obj):
-        # получаем по related_name 'reviews' все отзывы к произведению obj
-        # и через функцию aggregate рассчитываем среднее значение рейтинга
-        rating_from_reviews = obj.reviews.aggregate(Avg('score'))
-        return rating_from_reviews['score__avg']
+        fields = ['name', 'slug']
+        model = Genre
 
 
 class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = '__all__'
+        fields = ['name', 'slug']
         model = Category
 
 
-class GenreSerializer(serializers.ModelSerializer):
+class TitleReadSerializer(serializers.ModelSerializer):
+    rating = serializers.SerializerMethodField()
+    genre = GenreSerializer(many=True, read_only=True)
+    category = CategorySerializer(read_only=True)
 
     class Meta:
+        model = Title
         fields = '__all__'
-        model = Genre
+
+    def get_rating(self, obj):
+        rating_from_reviews = obj.reviews.aggregate(Avg('score'))
+        return rating_from_reviews['score__avg']
+
+
+class TitleWriteSerializer(serializers.ModelSerializer):
+    genre = serializers.SlugRelatedField(
+        queryset=Genre.objects.all(),
+        many=True,
+        slug_field='slug'
+    )
+    category = serializers.SlugRelatedField(
+        queryset=Category.objects.all(),
+        slug_field='slug'
+    )
+
+    class Meta:
+        model = Title
+        fields = '__all__'
+
+    def validate_year(self, value):
+        if value > datetime.now().year:
+            raise serializers.ValidationError(
+                'Нельзя добавлять произведения из будущего.'
+            )
+        return value
 
 
 class ReviewSerializer(BaseSerializer):
