@@ -93,9 +93,9 @@ class UserProfileViewSet(ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'delete']
 
     @action(
-            detail=False,
-            methods=['get', 'patch'],
-            permission_classes=[IsAuthenticated]
+        detail=False,
+        methods=['get', 'patch'],
+        permission_classes=[IsAuthenticated]
     )
     def me(self, request):
         """Информация о текущем залогиненном пользователе."""
