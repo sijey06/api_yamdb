@@ -2,6 +2,7 @@ import re
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
+from .mixins import BaseAllFieldsSerializer
 from .models import UserProfile
 
 
@@ -17,7 +18,7 @@ class UserProfileCreateSerializer(serializers.ModelSerializer):
 
     def validate_username(self, value):
         if value.lower() == 'me':
-            raise ValidationError('Username "me" is not allowed')
+            raise ValidationError('Username "me" запрещено')
         if not re.match(r'^[\w.@+-]+$', value):
             raise ValidationError(
                 'Username может содержать только буквы, цифры и @/./+/-/_'
@@ -43,32 +44,14 @@ class TokenSerializer(serializers.Serializer):
     confirmation_code = serializers.CharField()
 
 
-class UserProfileSerializer(serializers.ModelSerializer):
+class UserProfileSerializer(BaseAllFieldsSerializer):
     """Сериализатор для управления пользователями."""
 
-    class Meta:
-        model = UserProfile
-        fields = (
-            'username',
-            'email',
-            'first_name',
-            'last_name',
-            'bio',
-            'role'
-        )
+    pass
 
 
-class UserProfileEditSerializer(serializers.ModelSerializer):
+class UserProfileEditSerializer(BaseAllFieldsSerializer):
     """Сериализатор для редактирования профиля пользователя."""
 
-    class Meta:
-        model = UserProfile
-        fields = (
-            'username',
-            'email',
-            'first_name',
-            'last_name',
-            'bio',
-            'role'
-        )
+    class Meta(BaseAllFieldsSerializer.Meta):
         read_only_fields = ('role',)

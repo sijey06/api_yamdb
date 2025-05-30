@@ -1,20 +1,22 @@
-from rest_framework import permissions, status
+from django.core.mail import send_mail
+from django.db.models import Q
+from django.shortcuts import get_object_or_404
+from rest_framework import filters, permissions, status
+from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
-from rest_framework.decorators import api_view, permission_classes
-from django.core.mail import send_mail
-from django.conf import settings
-from .models import UserProfile
-from .serializers import UserProfileSerializer, UserProfileCreateSerializer, UserProfileEditSerializer, TokenSerializer
+from rest_framework.viewsets import ModelViewSet
+
 from api_yamdb.settings import DEFAULT_FROM_EMAIL
 from .models import UserProfile
-from .serializers import UserProfileSerializer
-from rest_framework.filters import SearchFilter
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.viewsets import ModelViewSet
-from rest_framework.decorators import action
-from django.shortcuts import get_object_or_404
 from .permissions import IsAdmin
+from .serializers import (
+    TokenSerializer,
+    UserProfileCreateSerializer,
+    UserProfileEditSerializer,
+    UserProfileSerializer,
+)
 
 
 @api_view(['POST'])
@@ -29,15 +31,24 @@ def signup(request):
 
     try:
         UserProfile.objects.get(email=email, username=username)
-        return Response({'detail': 'Учетная запись уже существует'}, status=status.HTTP_200_OK)
+        return Response(
+            {'detail': 'Учетная запись уже существует'},
+            status=status.HTTP_200_OK
+        )
     except UserProfile.DoesNotExist:
         pass
 
     if UserProfile.objects.filter(email=email).exists():
-        return Response({'email': ['Email уже используется']}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {'email': ['Email уже используется']},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
     if UserProfile.objects.filter(username=username).exists():
-        return Response({'username': ['Имя пользователя уже занято']}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {'username': ['Имя пользователя уже занято']},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
     user = UserProfile.objects.create_user(username=username, email=email)
     user.set_confirmation_code()
@@ -60,8 +71,10 @@ def get_token(request):
     serializer = TokenSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
-    user = get_object_or_404(UserProfile, username=serializer.validated_data['username'])
-
+    user = get_object_or_404(
+        UserProfile,
+        username=serializer.validated_data['username']
+    )
     conf_code = serializer.validated_data['confirmation_code']
     if user.confirmation_code != conf_code:
         return Response(
@@ -73,39 +86,31 @@ def get_token(request):
     return Response({'token': str(token)}, status=status.HTTP_200_OK)
 
 
-@api_view(['GET', 'PATCH'])
-@permission_classes([IsAuthenticated])
-def current_user(request):
-    """Просмотр и редактирование информации о текущем пользователе."""
-    if request.method == 'GET':
-        serializer = UserProfileSerializer(request.user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    elif request.method == 'PATCH':
-        serializer = UserProfileEditSerializer(request.user, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-
 class UserProfileViewSet(ModelViewSet):
     """Работа с моделью UserProfile."""
     queryset = UserProfile.objects.all()
     serializer_class = UserProfileSerializer
     permission_classes = (IsAdmin,)
-    filter_backends = (SearchFilter,)
+    filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
     lookup_field = 'username'
     http_method_names = ['get', 'post', 'patch', 'delete']
 
-    @action(detail=False, methods=['get', 'patch'], permission_classes=[IsAuthenticated])
+    @action(
+            detail=False,
+            methods=['get', 'patch'],
+            permission_classes=[IsAuthenticated]
+    )
     def me(self, request):
         """Информация о текущем залогиненном пользователе."""
         if request.method == 'PATCH':
-            serializer = UserProfileEditSerializer(request.user, data=request.data, partial=True)
+            serializer = UserProfileEditSerializer(
+                request.user,
+                data=request.data,
+                partial=True
+            )
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             serializer = UserProfileSerializer(request.user)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_200_OK)
