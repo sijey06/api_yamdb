@@ -1,10 +1,10 @@
 from rest_framework import serializers
-from rest_framework.exceptions import PermissionDenied
 from rest_framework.relations import SlugRelatedField
 from rest_framework.viewsets import ModelViewSet
 
 from api.permissions import IsAdminModeratorAuthorOrReadOnly
 from reviews.models import Title
+from users.models import UserProfile
 
 
 class BaseViewSet(ModelViewSet):
@@ -40,3 +40,19 @@ class BaseTitleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Title
         fields = '__all__'
+
+
+class BaseAllFieldsSerializer(serializers.ModelSerializer):
+    """Базовый сериализатор, использующий нужные поля и модель юзера."""
+
+    class Meta:
+        abstract = True
+        model = UserProfile
+        fields = (
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'bio',
+            'role'
+        )
