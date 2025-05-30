@@ -20,33 +20,6 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
 
 
-# class TitleSerializer(serializers.ModelSerializer):
-#     rating = serializers.SerializerMethodField(read_only=True)
-#     genre = serializers.SlugRelatedField(
-#         many=True,
-#         slug_field='slug',
-#         queryset=Genre.objects.all()
-#     )
-#     category = serializers.SlugRelatedField(
-#         slug_field='slug',
-#         queryset=Category.objects.all()
-#     )
-
-#     class Meta:
-#         fields = '__all__'
-#         model = Title
-
-#     def get_rating(self, obj):
-#         rating_from_reviews = obj.reviews.aggregate(Avg('score'))
-#         return rating_from_reviews['score__avg']
-
-#     def validate_year(self, value):
-#         current_year = now().year
-#         if value > current_year:
-#             raise serializers.ValidationError(
-#                 'Нельзя добавлять произведение из будущего.')
-#         return value
-# переделал на 2 сериализатора - для чтения и для записи
 class TitleReadSerializer(serializers.ModelSerializer):
     rating = serializers.SerializerMethodField()
     genre = GenreSerializer(many=True, read_only=True)
