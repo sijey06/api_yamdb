@@ -3,9 +3,9 @@ import re
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
-from .mixins import BaseAllFieldsSerializer
-from .models import UserProfile
+from api.base_components import BaseAllFieldsSerializer
 from reviews.constants import LENGTH_EMAIL, LENGTH_USERNAME
+from .models import UserProfile
 
 
 class UserProfileCreateSerializer(serializers.ModelSerializer):
