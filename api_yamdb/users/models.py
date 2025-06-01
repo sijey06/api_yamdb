@@ -54,7 +54,7 @@ class UserProfile(AbstractUser):
         self.save(update_fields=['confirmation_code'])
 
     class Meta:
-        ordering = ['id']
+        ordering = ('id',)
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
 

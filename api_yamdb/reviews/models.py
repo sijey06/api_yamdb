@@ -13,6 +13,10 @@ class Genre(models.Model):
         max_length=LENGTH_SLUG,
         unique=True)
 
+    class Meta:
+        verbose_name = 'Жанр'
+        verbose_name_plural = 'Жанры'
+
     def __str__(self):
         return self.name[:LENGTH_STR]
 
@@ -21,7 +25,7 @@ class Category(models.Model):
     name = models.CharField('название', max_length=LENGTH_NAME)
     slug = models.SlugField(
         'слаг категории',
-        max_length=50,
+        max_length=LENGTH_SLUG,
         unique=True)
 
     def __str__(self):
@@ -48,7 +52,7 @@ class Title(models.Model):
         default_related_name = 'titles'
         verbose_name = 'произведение'
         verbose_name_plural = 'произведения'
-        ordering = ['-year']
+        ordering = ('-year',)
 
     def __str__(self):
         return self.name[:LENGTH_STR]

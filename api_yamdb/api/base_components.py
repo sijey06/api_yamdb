@@ -31,7 +31,7 @@ class BaseNameSlugSerializer(serializers.ModelSerializer):
     """Базовый сериализатор для моделей с полями name и slug."""
 
     class Meta:
-        fields = ['name', 'slug']
+        fields = ('name', 'slug',)
 
 
 class BaseTitleSerializer(serializers.ModelSerializer):
