@@ -30,7 +30,7 @@ class TitleReadSerializer(BaseTitleSerializer):
     category = CategorySerializer(read_only=True)
 
     def get_rating(self, obj):
-        """ Возвращает рейтинг произведений."""
+        """Возвращает рейтинг произведений."""
         rating_from_reviews = obj.reviews.aggregate(Avg('score'))
         return rating_from_reviews['score__avg']
 
@@ -49,7 +49,7 @@ class TitleWriteSerializer(BaseTitleSerializer):
     )
 
     def validate_year(self, value):
-        """ Проверяет, чтобы значение года не указывалось в будущем."""
+        """Проверяет, чтобы значение года не указывалось в будущем."""
         if value > datetime.now().year:
             raise serializers.ValidationError(
                 'Нельзя добавлять произведения из будущего.'
@@ -61,9 +61,6 @@ class ReviewSerializer(BaseSerializer):
     """Сериализатор для работы с отзывами."""
 
     title = serializers.SlugRelatedField(slug_field='name', read_only=True)
-    author = serializers.SlugRelatedField(
-        slug_field='username', read_only=True
-    )
 
     class Meta(BaseSerializer.Meta):
         model = Review
