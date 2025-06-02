@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.auth.models import Group
 
 from .models import UserProfile
 
@@ -13,3 +14,6 @@ class UserProfileAdmin(admin.ModelAdmin):
         'bio',
         'role',
     )
+
+
+admin.site.unregister(Group)

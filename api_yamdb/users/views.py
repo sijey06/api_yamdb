@@ -21,29 +21,12 @@ def signup(request):
     serializer = UserProfileCreateSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
+    detail_message = serializer.validated_data.pop('detail', None)
+    if detail_message:
+        return Response({'detail': detail_message}, status=status.HTTP_200_OK)
+
     username = serializer.validated_data['username']
     email = serializer.validated_data['email']
-
-    try:
-        UserProfile.objects.get(email=email, username=username)
-        return Response(
-            {'detail': 'Учетная запись уже существует'},
-            status=status.HTTP_200_OK
-        )
-    except UserProfile.DoesNotExist:
-        pass
-
-    if UserProfile.objects.filter(email=email).exists():
-        return Response(
-            {'email': ['Email уже используется']},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    if UserProfile.objects.filter(username=username).exists():
-        return Response(
-            {'username': ['Имя пользователя уже занято']},
-            status=status.HTTP_400_BAD_REQUEST
-        )
 
     user = UserProfile.objects.create_user(username=username, email=email)
     user.set_confirmation_code()

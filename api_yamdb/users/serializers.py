@@ -9,8 +9,6 @@ from .models import UserProfile
 
 
 class UserProfileCreateSerializer(serializers.ModelSerializer):
-    """Сериализатор для регистрации пользователей."""
-
     email = serializers.EmailField()
     username = serializers.CharField()
 
@@ -38,6 +36,26 @@ class UserProfileCreateSerializer(serializers.ModelSerializer):
             )
         return value
 
+    def validate(self, data):
+        username = data.get('username')
+        email = data.get('email')
+
+        existing_account = UserProfile.objects.filter(
+            username=username, email=email
+        ).first()
+        if existing_account is not None:
+            data['detail'] = 'Учетная запись уже существует'
+            return data
+        elif UserProfile.objects.filter(username=username).exists():
+            raise serializers.ValidationError(
+                {'username': ['Имя пользователя уже занято']}
+            )
+        elif UserProfile.objects.filter(email=email).exists():
+            raise serializers.ValidationError(
+                {'email': ['Email уже используется']}
+            )
+        return data
+
 
 class TokenSerializer(serializers.Serializer):
     """Сериализатор для получения JWT токена."""
@@ -48,8 +66,6 @@ class TokenSerializer(serializers.Serializer):
 
 class UserProfileSerializer(BaseAllFieldsSerializer):
     """Сериализатор для управления пользователями."""
-
-    pass
 
 
 class UserProfileEditSerializer(BaseAllFieldsSerializer):
