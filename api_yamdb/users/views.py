@@ -21,21 +21,20 @@ def signup(request):
     serializer = UserProfileCreateSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
+    serializer.save()
+
     detail_message = serializer.validated_data.pop('detail', None)
     if detail_message:
         return Response({'detail': detail_message}, status=status.HTTP_200_OK)
 
-    username = serializer.validated_data['username']
-    email = serializer.validated_data['email']
-
-    user = UserProfile.objects.create_user(username=username, email=email)
+    user = serializer.instance
     user.set_confirmation_code()
 
     send_mail(
         'Код подтверждения YaMDb',
         f'Код подтверждения: {user.confirmation_code}',
         DEFAULT_FROM_EMAIL,
-        [email],
+        [user.email],
         fail_silently=False,
     )
 

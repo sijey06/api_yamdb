@@ -25,14 +25,14 @@ class UserProfileCreateSerializer(serializers.ModelSerializer):
             )
         if len(value) > LENGTH_USERNAME:
             raise ValidationError(
-                'Username не может быть длиннее 150 символов'
+                f'Username не может быть длиннее {LENGTH_USERNAME} символов'
             )
         return value
 
     def validate_email(self, value):
         if len(value) > LENGTH_EMAIL:
             raise ValidationError(
-                'Email не может быть длиннее 254 символов'
+                f'Email не может быть длиннее {LENGTH_EMAIL} символов'
             )
         return value
 
@@ -55,6 +55,15 @@ class UserProfileCreateSerializer(serializers.ModelSerializer):
                 {'email': ['Email уже используется']}
             )
         return data
+
+    def create(self, validated_data):
+        detail_message = validated_data.pop('detail', None)
+
+        if detail_message:
+            return {'detail': detail_message}
+
+        instance = super().create(validated_data)
+        return instance
 
 
 class TokenSerializer(serializers.Serializer):

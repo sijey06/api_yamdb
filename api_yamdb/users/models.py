@@ -1,9 +1,12 @@
 import secrets
+import re
 
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
 from django.db import models
 
-from reviews.constants import LENGTH_CODE, LENGTH_EMAIL, LENGTH_ROLE
+from reviews.constants import (LENGTH_CODE, LENGTH_EMAIL,
+                               LENGTH_ROLE, LENGTH_USERNAME)
 
 
 class UserProfile(AbstractUser):
@@ -52,6 +55,25 @@ class UserProfile(AbstractUser):
     def set_confirmation_code(self):
         self.confirmation_code = secrets.token_urlsafe(16)
         self.save(update_fields=['confirmation_code'])
+
+    def clean(self):
+        if self.username.lower() == 'me':
+            raise ValidationError('Username "me" запрещено')
+
+        if not re.match(r'^[\w.@+-]+$', self.username):
+            raise ValidationError(
+                'Username может содержать только',
+                'буквы, цифры и символы @/./+/-/_'
+            )
+
+        if len(self.username) > LENGTH_USERNAME:
+            raise ValidationError(
+                f'Username не может быть длиннее {LENGTH_USERNAME} символов'
+            )
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
 
     class Meta:
         ordering = ('id',)
