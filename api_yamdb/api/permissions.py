@@ -23,7 +23,7 @@ class IsAdminOrReadOnly(IsAdmin):
         )
 
 
-class IsAdminModeratorAuthorOrReadOnly(IsAdminOrReadOnly):
+class IsAdminModeratorAuthorOrReadOnly(permissions.BasePermission):
     """
     Разрешение на чтение для всех, полные права для автора, администратора,
     модератора.
