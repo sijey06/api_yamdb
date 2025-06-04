@@ -77,13 +77,7 @@ class ReviewViewSet(BaseViewSet):
 
     def perform_create(self, serializer):
         """Сохраняет новый отзыв с авторством текущего пользователя."""
-        try:
-            serializer.save(author=self.request.user, title=self._get_title())
-        except IntegrityError:
-            raise serializers.ValidationError(
-                'Пользователь уже оставил отзыв на данное произведение.',
-                code='duplicate_review',
-            )
+        serializer.save(author=self.request.user, title=self._get_title())
 
 
 class CommentViewSet(BaseViewSet):
@@ -93,9 +87,11 @@ class CommentViewSet(BaseViewSet):
 
     def _get_review(self):
         """Приватный метод для получения отзыва по его идентификатору."""
-        review_id = self.kwargs['review_id']
-        title_id = self.kwargs['title_id']
-        return get_object_or_404(Review, id=review_id, title_id=title_id)
+        return get_object_or_404(
+            Review,
+            id=self.kwargs['review_id'],
+            title_id=self.kwargs['title_id'],
+        )
 
     def get_queryset(self):
         """Возвращает фильтр комментариев, относящихся к конкретному отзыву."""

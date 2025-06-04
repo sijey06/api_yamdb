@@ -1,11 +1,16 @@
 from datetime import datetime
 
 from django.db.models import Avg
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
-from api.base_components import (BaseNameSlugSerializer, BaseSerializer,
-                                 BaseTitleSerializer)
-from reviews.models import Category, Comment, Genre, Review
+from api.base_components import (
+    BaseNameSlugSerializer,
+    BaseSerializer,
+    BaseTitleSerializer,
+)
+from reviews.models import Category, Comment, Genre, Review, Title
 
 
 class GenreSerializer(BaseNameSlugSerializer):
@@ -61,6 +66,23 @@ class ReviewSerializer(BaseSerializer):
     """Сериализатор для работы с отзывами."""
 
     title = serializers.SlugRelatedField(slug_field='name', read_only=True)
+
+    def validate(self, validated_data):
+        """Валидация отзыва: проверка уникальности отзыва от пользователя."""
+        request = self.context['request']
+        title = get_object_or_404(
+            Title, pk=self.context['view'].kwargs['title_id']
+        )
+
+        if (
+            request.method == 'POST'
+            and Review.objects.filter(
+                title=title, author=request.user
+            ).exists()
+        ):
+            raise ValidationError('Данный пользователь уже оставил отзыв!')
+
+        return validated_data
 
     class Meta(BaseSerializer.Meta):
         model = Review
